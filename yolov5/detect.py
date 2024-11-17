@@ -187,13 +187,16 @@ def run(
         pred = non_max_suppression(pred, conf_thres, iou_thres, max_det=max_det)
 
         detected_classes = [0] * len(names)
+        labels_to_draw = []
         for det in pred:
             if len(det):
                 for *xyxy, conf, cls in det:
                     detected_classes[int(cls)] = 1
+                    # 좌표와 레이블 저장
+                    labels_to_draw.append((names[int(cls)], xyxy))
 
         print("Detected classes:", detected_classes)
-        cd.add(names, detected_classes, save_dir, im0s)
+        cd.add(names, detected_classes, save_dir, im0s, labels_to_draw)
 
         if view_img:
             cv2.imshow(str(path), im0s)

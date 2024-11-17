@@ -26,11 +26,10 @@ class ChangeDetection:
         self.token = res.json()['token']
         print(self.token)
     
-    def add(self, names, detected_current, save_dir, image):
+    def add(self, names, detected_current, save_dir, image, labels_to_draw):
         self.title = ''
         self.text = ''
         change_flag = False
-
 
         for i in range(len(self.result_prev)):
             if self.result_prev[i] == 0 and detected_current[i] == 1:
@@ -41,9 +40,10 @@ class ChangeDetection:
         self.result_prev = detected_current[:]
 
         if change_flag:
-            self.send(save_dir, image)
+            self.send(save_dir, image, labels_to_draw)
+
     
-    def send(self, save_dir, image):
+    def send(self, save_dir, image, labels_to_draw):
         now = datetime.now()
         today = now.date()
 
@@ -52,6 +52,11 @@ class ChangeDetection:
 
         file_name = f"{now.strftime('%H-%M-%S')}-{now.microsecond}.jpg"
         full_path = save_path / file_name
+
+        # 이미지에 레이블 추가
+        for label, (x1, y1, x2, y2) in labels_to_draw:
+            cv2.rectangle(image, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 2)
+            cv2.putText(image, label, (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
 
         # Save resized image
         dst = cv2.resize(image, dsize=(320, 240), interpolation=cv2.INTER_AREA)
