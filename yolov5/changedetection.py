@@ -25,44 +25,32 @@ class ChangeDetection:
         res.raise_for_status()
         self.token = res.json()['token']
         print(self.token)
-    
+
     def add(self, names, detected_current, save_dir, image, labels_to_draw):
         """
-        Detect changes in the detected objects and send the data if changes are found.
-
-        Args:
-            names (list[str]): Class names.
-            detected_current (list[int]): Current detection states for each class.
-            save_dir (Path): Directory to save results.
-            image (ndarray): Current frame/image.
-            labels_to_draw (list[tuple]): List of labels and bounding box coordinates to draw.
+        Update detected objects and send data if new detections are found.
         """
         self.title = ''
         self.text = ''
         change_flag = False
 
         for i in range(len(self.result_prev)):
-            # 탐지가 새롭게 발생한 경우에만 전송 플래그를 설정
             if self.result_prev[i] == 0 and detected_current[i] == 1:
                 change_flag = True
                 self.title += f"{names[i]} | "
                 self.text += f"{names[i]}, "
 
-        # 탐지 상태 업데이트
         self.result_prev = detected_current[:]
 
-        # 새롭게 탐지된 경우에만 서버로 전송
         if change_flag:
+            # 탐지된 전체 객체 리스트 추가
+            all_detected = [names[i] for i in range(len(detected_current)) if detected_current[i] == 1]
+            self.text += f"\nDetected objects: {', '.join(all_detected)}"
             self.send(save_dir, image, labels_to_draw)
 
     def send(self, save_dir, image, labels_to_draw):
         """
-        Save the image with bounding boxes and send the data to the server.
-
-        Args:
-            save_dir (Path): Directory to save results.
-            image (ndarray): Current frame/image.
-            labels_to_draw (list[tuple]): List of labels and bounding box coordinates to draw.
+        Save the image and send data to the server.
         """
         now = datetime.now()
         today = now.date()
@@ -85,7 +73,7 @@ class ChangeDetection:
         # 콘솔에서 추가 title, text 입력 받기
         additional_title = input("Enter additional title: ").strip()
         additional_text = input("Enter additional text: ").strip()
-
+        
         # 기존 title과 text에 추가 title, text 연결
         self.title = self.title.strip(" | ")  # 마지막 ' | ' 제거
         self.title += f" | {additional_title}" if additional_title else ""
@@ -111,4 +99,3 @@ class ChangeDetection:
             print(f"Response: {res.status_code}, {res.text}")
         except requests.RequestException as e:
             print(f"Failed to send data: {e}")
-
