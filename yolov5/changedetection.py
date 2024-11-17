@@ -3,6 +3,8 @@ import cv2
 import pathlib
 import requests
 from datetime import datetime
+from collections import Counter
+
 
 class ChangeDetection:
     result_prev = []
@@ -34,18 +36,24 @@ class ChangeDetection:
         self.text = ''
         change_flag = False
 
+        # 탐지된 객체 이름 리스트 생성 (labels_to_draw는 (label, bounding_box) 형식으로 전달됨)
+        detected_labels = [label for label, _ in labels_to_draw]
+
+        # 객체 카운트 계산
+        detected_counts = Counter(detected_labels)
+
+        # 새롭게 탐지된 객체 확인
         for i in range(len(self.result_prev)):
             if self.result_prev[i] == 0 and detected_current[i] == 1:
                 change_flag = True
                 self.title += f"{names[i]} | "
-                self.text += f"{names[i]}, "
 
         self.result_prev = detected_current[:]
 
         if change_flag:
-            # 탐지된 전체 객체 리스트 추가
-            all_detected = [names[i] for i in range(len(detected_current)) if detected_current[i] == 1]
-            self.text += f"\nDetected objects: {', '.join(all_detected)}"
+            # 탐지된 객체와 개수를 본문에 추가
+            self.text += "Detected objects:\n"
+            self.text += ", ".join([f"{obj} ({count})" for obj, count in detected_counts.items()])
             self.send(save_dir, image, labels_to_draw)
 
     def send(self, save_dir, image, labels_to_draw):
