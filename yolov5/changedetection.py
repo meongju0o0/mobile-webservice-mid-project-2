@@ -62,6 +62,14 @@ class ChangeDetection:
         dst = cv2.resize(image, dsize=(320, 240), interpolation=cv2.INTER_AREA)
         cv2.imwrite(str(full_path), dst)
 
+        # 콘솔에서 추가 title, text 입력 받기
+        additional_title = input("Enter additional title: ").strip()
+        additional_text = input("Enter additional text: ").strip()
+
+        # 기존 title과 text에 추가 title, text 연결
+        self.title += f" | {additional_title}" if additional_title else ""
+        self.text += f" {additional_text}" if additional_text else ""
+
         headers = {
             'Authorization': f'JWT {self.token}',
             'Accept': 'application/json'
